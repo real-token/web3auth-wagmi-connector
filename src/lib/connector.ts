@@ -1,5 +1,6 @@
 import { ChainNotConfiguredError, createConnector } from "@wagmi/core";
-import type { IWeb3Auth } from "@web3auth/base";
+import { LoginSettings } from "@web3auth/auth-adapter";
+import type { IProvider, IWeb3Auth } from "@web3auth/base";
 import * as pkg from "@web3auth/base";
 import type { IWeb3AuthModal } from "@web3auth/modal";
 import { Chain, getAddress, SwitchChainError, UserRejectedRequestError } from "viem";
@@ -21,7 +22,7 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
     id: id || "web3auth",
     name: name || "Web3Auth",
     type: type || "Web3Auth",
-    async connect({ chainId } = {}) {
+    async connect({ chainId, loginHint }: { chainId?: number; loginHint?: string } = {}) {
       try {
         config.emitter.emit("message", {
           type: "connecting",
@@ -36,7 +37,10 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
           if (isIWeb3AuthModal(web3AuthInstance)) {
             await web3AuthInstance.connect();
           } else if (loginParams) {
-            await web3AuthInstance.connectTo(WALLET_ADAPTERS.AUTH, loginParams);
+            await web3AuthInstance.connectTo<LoginSettings>(WALLET_ADAPTERS.AUTH, {
+              ...loginParams,
+              extraLoginOptions: { ...loginParams.extraLoginOptions, login_hint: loginHint },
+            });
           } else {
             log.error("please provide valid loginParams when using @web3auth/no-modal");
             throw new UserRejectedRequestError("please provide valid loginParams when using @web3auth/no-modal" as unknown as Error);
@@ -62,7 +66,7 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
       }
     },
     async getAccounts() {
-      const provider = await this.getProvider();
+      const provider: IProvider = await this.getProvider();
       return (
         await provider.request<unknown, string[]>({
           method: "eth_accounts",
@@ -70,7 +74,7 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
       ).map((x: string) => getAddress(x));
     },
     async getChainId() {
-      const provider = await this.getProvider();
+      const provider: IProvider = await this.getProvider();
       const chainId = await provider.request<unknown, number>({ method: "eth_chainId" });
       return Number(chainId);
     },

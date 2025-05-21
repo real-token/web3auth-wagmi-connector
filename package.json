@@ -1,6 +1,6 @@
 {
-  "name": "@web3auth/web3auth-wagmi-connector",
-  "version": "7.0.0",
+  "name": "@real-token/web3auth-wagmi-connector",
+  "version": "7.0.1",
   "description": "wagmi connector to connect with web3auth SDK",
   "sideEffects": false,
   "main": "dist/lib.cjs/index.js",
@@ -24,12 +24,15 @@
     "ethereum"
   ],
   "scripts": {
-    "dev": "torus-scripts start",
+    "start": "torus-scripts start",
     "build": "torus-scripts build",
     "release": "torus-scripts release",
     "lint": "eslint --fix 'src/**/*.ts'",
     "prepack": "npm run build",
-    "pre-commit": "lint-staged --cwd ."
+    "pre-commit": "lint-staged --cwd .",
+    "dev": "yalc publish --private",
+    "prepublishOnly": "npm run build",
+     "yalc:push": "yalc push --sig --replace"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.8",
@@ -82,5 +85,6 @@
   "engines": {
     "node": ">=18.x",
     "npm": ">=9.x"
-  }
+  },
+  "packageManager": "yarn@4.5.1+sha256.dc2e45a77f87a9c2a76708d098ab54ca0cfdd5ec2cf7d9e3c1f24bf786a2383c"
 }
