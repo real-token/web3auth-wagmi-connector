@@ -37,16 +37,12 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
 
         if (!web3AuthInstance.connected) {
           if (isIWeb3AuthModal(web3AuthInstance)) {
-            const adapter = web3AuthInstance.getAdapter(WALLET_ADAPTERS.AUTH) as AuthAdapter;
-            // eslint-disable-next-line no-console
-            console.log("simple connect adapter.adapterData", adapter.adapterData);
             await web3AuthInstance.connect();
           } else if (loginParams) {
             const adapter = web3AuthInstance.getAdapter(WALLET_ADAPTERS.AUTH) as AuthAdapter;
-            // eslint-disable-next-line no-console
-            console.log("adapter.adapterData", adapter.adapterData);
             await web3AuthInstance.connectTo<LoginSettings>(WALLET_ADAPTERS.AUTH, {
               ...loginParams,
+              extraLoginOptions: { ...loginParams.extraLoginOptions, login_hint: adapter.authInstance.sessionNamespace },
             });
           } else {
             log.error("please provide valid loginParams when using @web3auth/no-modal");
