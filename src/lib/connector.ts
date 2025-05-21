@@ -23,6 +23,7 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
     name: name || "Web3Auth",
     type: type || "Web3Auth",
     async connect({ chainId, loginHint }: { chainId?: number; loginHint?: string } = {}) {
+      console.log("connect", chainId, loginHint);
       try {
         config.emitter.emit("message", {
           type: "connecting",
