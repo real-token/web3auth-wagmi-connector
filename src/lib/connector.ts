@@ -1,5 +1,5 @@
 import { ChainNotConfiguredError, createConnector } from "@wagmi/core";
-import { AuthAdapter, LoginSettings } from "@web3auth/auth-adapter";
+import { AuthAdapter } from "@web3auth/auth-adapter";
 import type { IProvider, IWeb3Auth } from "@web3auth/base";
 import * as pkg from "@web3auth/base";
 import type { IWeb3AuthModal } from "@web3auth/modal";
@@ -35,15 +35,18 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
         provider.on("chainChanged", this.onChainChanged);
         provider.on("disconnect", this.onDisconnect.bind(this));
 
+        const adapter = web3AuthInstance.getAdapter(WALLET_ADAPTERS.AUTH) as AuthAdapter;
+        // eslint-disable-next-line no-console
+        console.log("adapter.authInstance.sessionNamespace", adapter.authInstance.sessionNamespace);
+
         if (!web3AuthInstance.connected) {
           if (isIWeb3AuthModal(web3AuthInstance)) {
-            await web3AuthInstance.connect();
+            // await web3AuthInstance.connect();
           } else if (loginParams) {
-            const adapter = web3AuthInstance.getAdapter(WALLET_ADAPTERS.AUTH) as AuthAdapter;
-            await web3AuthInstance.connectTo<LoginSettings>(WALLET_ADAPTERS.AUTH, {
-              ...loginParams,
-              extraLoginOptions: { ...loginParams.extraLoginOptions, login_hint: adapter.authInstance.sessionNamespace },
-            });
+            // await web3AuthInstance.connectTo<LoginSettings>(WALLET_ADAPTERS.AUTH, {
+            //   ...loginParams,
+            //   extraLoginOptions: { ...loginParams.extraLoginOptions, login_hint: adapter.authInstance.sessionNamespace },
+            // });
           } else {
             log.error("please provide valid loginParams when using @web3auth/no-modal");
             throw new UserRejectedRequestError("please provide valid loginParams when using @web3auth/no-modal" as unknown as Error);
