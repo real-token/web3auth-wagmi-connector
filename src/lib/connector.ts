@@ -17,7 +17,7 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
   let walletProvider: Provider | null = null;
 
   const { web3AuthInstance, loginParams, modalConfig, id, name, type } = parameters;
-  
+
   return createConnector<Provider>((config) => ({
     id: id || "web3auth",
     name: name || "Web3Auth",
@@ -40,7 +40,8 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
             await web3AuthInstance.connect();
           } else if (loginParams) {
             const adapter = web3AuthInstance.getAdapter(WALLET_ADAPTERS.AUTH) as AuthAdapter;
-            console.log('adapter.adapterData', adapter.adapterData);
+            // eslint-disable-next-line no-console
+            console.log("adapter.adapterData", adapter.adapterData);
             await web3AuthInstance.connectTo<LoginSettings>(WALLET_ADAPTERS.AUTH, {
               ...loginParams,
               extraLoginOptions: { ...loginParams.extraLoginOptions, login_hint: loginHint },
