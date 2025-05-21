@@ -1,6 +1,6 @@
 {
   "name": "@real-token/web3auth-wagmi-connector",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "wagmi connector to connect with web3auth SDK",
   "sideEffects": false,
   "main": "dist/lib.cjs/index.js",
