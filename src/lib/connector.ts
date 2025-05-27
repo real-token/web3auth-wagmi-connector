@@ -1,9 +1,11 @@
 import { ChainNotConfiguredError, createConnector } from "@wagmi/core";
-import { CONNECTOR_STATUS, IProvider, log, WALLET_CONNECTORS } from "@web3auth/modal";
+import * as pkg from "@web3auth/modal";
+import type { IProvider } from "@web3auth/no-modal";
 import { Chain, getAddress, SwitchChainError, UserRejectedRequestError } from "viem";
 
 import type { Provider, Web3AuthConnectorParams } from "./interfaces";
 
+const { CONNECTOR_STATUS, log, WALLET_CONNECTORS } = pkg;
 export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
   let walletProvider: Provider | null = null;
 
