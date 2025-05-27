@@ -1,22 +1,13 @@
 import { ChainNotConfiguredError, createConnector } from "@wagmi/core";
-import { LoginSettings } from "@web3auth/auth-adapter";
-import type { IProvider, IWeb3Auth } from "@web3auth/base";
-import * as pkg from "@web3auth/base";
-import type { IWeb3AuthModal } from "@web3auth/modal";
+import { CONNECTOR_STATUS, IProvider, log, WALLET_CONNECTORS } from "@web3auth/modal";
 import { Chain, getAddress, SwitchChainError, UserRejectedRequestError } from "viem";
 
 import type { Provider, Web3AuthConnectorParams } from "./interfaces";
 
-const { ADAPTER_STATUS, CHAIN_NAMESPACES, WALLET_ADAPTERS, log } = pkg;
-
-function isIWeb3AuthModal(obj: IWeb3Auth | IWeb3AuthModal): obj is IWeb3AuthModal {
-  return typeof (obj as IWeb3AuthModal).initModal !== "undefined";
-}
-
 export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
   let walletProvider: Provider | null = null;
 
-  const { web3AuthInstance, loginParams, modalConfig, id, name, type } = parameters;
+  const { web3AuthInstance, loginParams, id, name, type } = parameters;
 
   return createConnector<Provider>((config) => ({
     id: id || "web3auth",
@@ -34,17 +25,14 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
         provider.on("disconnect", this.onDisconnect.bind(this));
 
         if (!web3AuthInstance.connected) {
-          if (isIWeb3AuthModal(web3AuthInstance)) {
+          if (!loginParams) {
             await web3AuthInstance.connect();
           } else if (loginParams) {
             const { email } = web3AuthInstance.coreOptions as unknown as { email: string };
-            await web3AuthInstance.connectTo<LoginSettings>(WALLET_ADAPTERS.AUTH, {
+            await web3AuthInstance.connectTo<typeof WALLET_CONNECTORS.AUTH>(WALLET_CONNECTORS.AUTH, {
               ...loginParams,
               extraLoginOptions: { ...loginParams.extraLoginOptions, login_hint: email },
             });
-          } else {
-            log.error("please provide valid loginParams when using @web3auth/no-modal");
-            throw new UserRejectedRequestError("please provide valid loginParams when using @web3auth/no-modal" as unknown as Error);
           }
         }
 
@@ -83,17 +71,8 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
       if (walletProvider) {
         return walletProvider;
       }
-      if (web3AuthInstance.status === ADAPTER_STATUS.NOT_READY) {
-        if (isIWeb3AuthModal(web3AuthInstance)) {
-          await web3AuthInstance.initModal({
-            modalConfig,
-          });
-        } else if (loginParams) {
-          await web3AuthInstance.init();
-        } else {
-          log.error("please provide valid loginParams when using @web3auth/no-modal");
-          throw new UserRejectedRequestError("please provide valid loginParams when using @web3auth/no-modal" as unknown as Error);
-        }
+      if (web3AuthInstance.status === CONNECTOR_STATUS.NOT_READY) {
+        await web3AuthInstance.init();
       }
 
       walletProvider = web3AuthInstance.provider;
@@ -111,20 +90,6 @@ export function Web3AuthConnector(parameters: Web3AuthConnectorParams) {
       try {
         const chain = config.chains.find((x) => x.id === chainId);
         if (!chain) throw new SwitchChainError(new ChainNotConfiguredError());
-
-        await web3AuthInstance.addChain({
-          chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: `0x${chain.id.toString(16)}`,
-          rpcTarget: chain.rpcUrls.default.http[0],
-          displayName: chain.name,
-          blockExplorerUrl: chain.blockExplorers?.default.url || "",
-          ticker: chain.nativeCurrency?.symbol || "ETH",
-          tickerName: chain.nativeCurrency?.name || "Ethereum",
-          decimals: chain.nativeCurrency?.decimals || 18,
-          logo: chain.nativeCurrency?.symbol
-            ? `https://images.toruswallet.io/${chain.nativeCurrency?.symbol.toLowerCase()}.svg`
-            : "https://images.toruswallet.io/eth.svg",
-        });
         log.info("Chain Added: ", chain.name);
         await web3AuthInstance.switchChain({ chainId: `0x${chain.id.toString(16)}` });
         log.info("Chain Switched to ", chain.name);
